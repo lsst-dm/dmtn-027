@@ -5,9 +5,11 @@ Introduction
 
 Say you have a repository named ``meas_worst`` and you want to change it to better reflect its usage as the best ``pipe_tasks`` package ever: ``pipe_best``. Several other packages depend on ``meas_worst``, and other developers may be currently working on ``meas_worst`` ticket branches. This document describes how to rename the repository with minimal disruption to the LSST build system and its users.
 
-Before you get to this point, be sure you've created an RFC on the topic, gotten agreement about the package rename, and created an implementation ticket in which to do the work.
+Before you get to this point, be sure you've created an `RFC`_ on the topic, gotten agreement about the package rename, and created an implementation ticket in which to do the work.
 
 NOTE: This document assumes you are part of the `lsst-dm` github organization, but it applies to other groups as well, by replacing `lsst-dm` with your organization in the text below.
+
+.. _RFC: https://developer.lsst.io/processes/decision_process.html#request-for-comments-rfc-process
 
 The process
 ===========
@@ -46,7 +48,7 @@ Browse to your newly forked ``meas_worst`` repository and click the `Settings` t
 Create branches in old and new package
 --------------------------------------
 
-Create a ``tickets/DM-NNNN`` branch of your RFC implementation ticket in both the original ``meas_worst`` and the new ``pipe_best``.
+Create a ``tickets/DM-NNNN`` branch of your `RFC`_ implementation ticket in both the original ``meas_worst`` and the new ``pipe_best``.
 
 Rename code directories and files (**commit**)
 ----------------------------------------------
@@ -87,9 +89,11 @@ Commit these changes, and push your branch.
 Update ``lsstsw/etc/repos.yaml``
 --------------------------------
 
-On your ticket branch, add a ``pipe_best`` entry to lsstsw's :file:`repos.yaml` pointing to `http://github.com/lsst-dm/pipe_best`. Create a Pull Request for your branch, and if it passes Travis you are free to merge it to master.
+On your ticket branch, add a ``pipe_best`` entry to lsstsw's :file:`repos.yaml` pointing to `http://github.com/lsst-dm/pipe_best`. Create a Pull Request for your branch, and if it passes Travis you are free to merge it to master (further details on the `Adding New Package`_ page).
 
 Do not delete the ``meas_worst`` entry yet.
+
+.. _Adding New Package: https://developer.lsst.io/build-ci/new_package.html#adding-a-new-package-to-the-build
 
 Deprecate old package
 ---------------------
@@ -112,7 +116,7 @@ Update dependent packages
 
 In each of the dependent packages:
 
-* Update the ups dependencies in the table file: ``setupRequired(meas_worst)`` -> ``setupRequired(pipe_best)``.
+* Update the ups dependencies in the ``ups/PACKAGE.table`` file: ``setupRequired(meas_worst)`` -> ``setupRequired(pipe_best)`` and in the dependencies section of ``ups/PACKAGE.cfg``.
 * Change any python import statements and namespaces, and any C++ include files and namespaces (top-level or explicit).
 * Commit and push your branch.
 
@@ -145,10 +149,12 @@ Once your rename has been merged to master, other developers may have open branc
 
 1. Push your ``meas_worst`` changes to github on your branch.
 2. Clone pipe_best: ``git clone https://github.com/lsst-dm/pipe_best``
-3. Checkout your branch; it should exist in pipe_best. If it does not, or if it is not up-to-date with your latest changes in ``meas_worst``, you may have to follow the `syncing a fork`_ instructions.
+3. Checkout your branch; it should exist in ``pipe_best``. If it does not, or if it is not up-to-date with your latest changes in ``meas_worst``, you may have to follow the `syncing a fork`_ instructions, but **do not sync master**, only your branch.
 4. Rebase to ``pipe_best`` master: ``git rebase master``
 5. Fix any conflicts. There may be a few, if you modified lines around statements that were changed during the rename.
 6. Commit and push your branch to ``pipe_best``, and continue your work.
+
+.. _syncing a fork: https://help.github.com/articles/syncing-a-fork/
 
 Post-move cleanup
 =================
