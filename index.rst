@@ -1,47 +1,159 @@
 :tocdepth: 1
-.. Please do not modify tocdepth; will be fixed when a new Sphinx theme is shipped.
-
-.. sectnum::
-
-
-.. Add content below. Do not include the document title.
-
-.. note::
-
-   **This technote is not yet published.**
 
 Introduction
 ============
 
-Say you have a repository named `meas_worst` and you want to change it to better reflect its usage as the best `pipe_tasks` package ever: `pipe_best`. Several other pacakges depend on `meas_worst`, and others may be currently working on `meas_worst` ticket branches. This document describes how to rename the repository with minimal disruption to the LSST build system and its users.
+Say you have a repository named ``meas_worst`` and you want to change it to better reflect its usage as the best ``pipe_tasks`` package ever: ``pipe_best``. Several other packages depend on ``meas_worst``, and other developers may be currently working on ``meas_worst`` ticket branches. This document describes how to rename the repository with minimal disruption to the LSST build system and its users.
 
 Before you get to this point, be sure you've created an RFC on the topic, gotten agreement about the package rename, and created an implementation ticket in which to do the work.
 
- NOTE: The document assumes you are part of the `lsst-dm` github organization, but can apply to other groups as well by replacing `lsst-dm` with your organization in the text below.
+NOTE: This document assumes you are part of the `lsst-dm` github organization, but it applies to other groups as well, by replacing `lsst-dm` with your organization in the text below.
 
 The process
------------
+===========
 
 Here are the basic steps:
 
 1. Fork
 2. Rename package
 3. Create branches in old and new package
-4. Rename code directories and files in new pacakge
-5. Rename ups files
-6. Search and replace in source code and docs
-7. Update `lsstsw/etc/repos.yaml`
-8. Mark old package as deprecated in Readme and via ImportErrors in python
+4. Rename code directories and files (**commit**)
+5. Rename ups files (**commit**)
+6. Search and replace in source code and docs (**commit**)
+7. Update :file:`lsstsw/etc/repos.yaml`
+8. Deprecate old package
 9. Branch dependent packages
-10. Update depdendent ups tables and import/include statements
-11. Update `confluence package history`_
+10. Update dependent packages
+11. Test in Jenkins
+12. Update `confluence package history`_ page
+13. Get reviewed
+14. Post on Community and Slack
+
+We will go through them one at a time in detail below.
 
 .. _Confluence package history: https://confluence.lsstcorp.org/display/DM/DM+Stack+Package+History
 
-Post-move cleanup
------------------
+Fork
+----
 
-Because github keeps track of forks, we could not move our renamed package back from `lsst-dm` into `lsst`. Once you are reasonably confident that there is nobody working on `meas_worst` and that all relevant work has been moved to `pipe_best`, you can delete `meas_worst` from `lsst` and transfer `pipe_best` from `lsst-dm` to `lsst` via the `github transfer repository`_ instructions. Once you've done the transfer, update `repos.yaml` again. This final rename step should not disrupt anything, since github creates a redirect when you use its repository transfer machanism.
+Fork ``meas_worst`` from the `lsst` organization into the `lsst-dm` organization via the github interface. When you click the "Fork" button, github should give you a "Where should we fork this repository?" dialog: choose `lsst-dm`. This is the repository we will work in from now on.
+
+Rename package
+--------------
+
+Browse to your newly forked ``meas_worst`` repository and click the `Settings` tab. Change the repository name to ``pipe_best`` and click `Rename` (the button will be grayed out until you modify the name).
+
+Create branches in old and new package
+--------------------------------------
+
+Create a ``tickets/DM-NNNN`` branch of your RFC implementation ticket in both the original ``meas_worst`` and the new ``pipe_best``.
+
+Rename code directories and files (**commit**)
+----------------------------------------------
+
+Use :command:`git mv` to rename directories and files (in particular: ``python/lsst/meas/worst/`` and ``include/lsst/meas/worst``) so that they fit within the new namespace implied by the new package name. Git is generally quite intelligent about file renames, so you can do, for example::
+
+    cd python
+    git mv meas pipe
+    cd pipe
+    git mv worst best
+    git commit -a
+
+By committing this step individually, you will make it much cleaner for others to rebase your changes when they switch to the renamed fork.
+
+Rename ups files (**commit**)
+-----------------------------
+
+Rename the files in `ups/`::
+
+    cd ups
+    git mv meas_worst.build pipe_best.build
+    git mv meas_worst.cfg pipe_best.cfg
+    git mv meas_worst.table pipe_best.table
+    git commit -a
+
+Search and replace in source code and docs (**commit**)
+-------------------------------------------------------
+
+This step is helped immensely by using an editor that can do search-and-replace across all files in a package.
+
+* You will have to change ``meas_worst`` to ``pipe_best`` in the base level :file:`Sconstruct` file, and possibly also in other :file:`Sconscript` files as well.
+* In python code, you will need to change ``lsst.meas.worst`` to ``lsst.pipe.best`` and any related ``import lsst.meas.worst as measWorst`` aliases.
+* In C++ code and headers, change any ``namespace meas { namespace worst`` blocks to ``namespace pipe { namespace best``, and also change any ``meas::worst`` explicit namespaces.
+* Finally, replace any other references to ``meas_worst`` with ``pipe_best``, including docstrings, comments, Config keys and values, and :func:`getPackageDir()` calls. Be thorough in your search.
+
+Commit these changes, and push your branch.
+
+Update ``lsstsw/etc/repos.yaml``
+--------------------------------
+
+On your ticket branch, add a ``pipe_best`` entry to lsstsw's :file:`repos.yaml` pointing to `http://github.com/lsst-dm/pipe_best`. Create a Pull Request for your branch, and if it passes Travis you are free to merge it to master.
+
+Do not delete the ``meas_worst`` entry yet.
+
+Deprecate old package
+---------------------
+
+On your ticket branch in ``meas_worst``, add a deprecation note to the top of the README file, and add the following to each of the :file:`__init__.py` files in the ``python/meas`` sub-directories::
+
+    raise ImportError("This package is being renamed to pipe_best! Do not use!")
+
+Commit those changes and push your branch.
+
+This will help you identify packages that depend on ``meas_worst``, as they will break as soon as they attempt to import any portion of it.
+
+Branch dependent packages
+-------------------------
+
+Create ``tickets/DM-NNNN`` branches for those packages you know are dependent on ``meas_worst``. Any that you weren't aware of will be discovered when you run Jenkins in a moment.
+
+Update dependent packages
+-------------------------
+
+In each of the dependent packages:
+
+* Update the ups dependencies in the table file: ``setupRequired(meas_worst)`` -> ``setupRequired(pipe_best)``.
+* Change any python import statements and namespaces, and any C++ include files and namespaces (top-level or explicit).
+* Commit and push your branch.
+
+Test in Jenkins
+---------------
+
+You can test the individual dependent packages one at a time, but you also need to test everything in Jenkins to ensure you haven't missed any dependent packages. Because you've added ``pipe_best`` to :file:`repos.yaml` on master and done all of the above work on one ticket branch, you can submit a Jenkins job for your branch and it will test all of your changes, plus it will make it clear if you've missed anything because of the ``ImportError`` statements in ``meas_worst``.
+
+Update confluence package history page
+--------------------------------------
+
+Add another entry to the `confluence package history`_ table, noting the date you expect the code review and merge for this package rename to be complete.
+
+Get reviewed
+------------
+
+Once Jenkins passes, including all the demos, and you've pushed your changes to all of the dependent package branches, have your ticket reviewed. This step should not be too difficult for the reviewer, even though many packages have changed, as the individual changes should be small. You can refer the reviewer to this document for them to refer to during the review (e.g. to prevent file renames and content changes being part of the same commit).
+
+Post on Community and Slack
+---------------------------
+
+To ensure that other developers are aware of the pending change, post to the appropriate rooms on Slack (e.g. `dm`) and write up a short Community_ post describing the change and any caveats that other developers should be aware of.
+
+.. _Community: https://community.lsst.org
+
+Merging in work that had started on the old package
+===================================================
+
+Once your rename has been merged to master, other developers may have open branches on ``meas_worst`` that they will want to move to ``pipe_best``. Because you did the various steps above as individual commits, they should be able to rebase cleanly. Those developers can follow the following steps:
+
+1. Push your ``meas_worst`` changes to github on your branch.
+2. Clone pipe_best: ``git clone https://github.com/lsst-dm/pipe_best``
+3. Checkout your branch; it should exist in pipe_best. If it does not, or if it is not up-to-date with your latest changes in ``meas_worst``, you may have to follow the `syncing a fork`_ instructions.
+4. Rebase to ``pipe_best`` master: ``git rebase master``
+5. Fix any conflicts. There may be a few, if you modified lines around statements that were changed during the rename.
+6. Commit and push your branch to ``pipe_best``, and continue your work.
+
+Post-move cleanup
+=================
+
+Because github keeps track of forks, we could not move our renamed package back from `lsst-dm` into `lsst`. Once you are reasonably confident that there is nobody working on ``meas_worst`` and that all relevant work has been moved to ``pipe_best``, you can delete ``meas_worst`` from `lsst` and transfer ``pipe_best`` from `lsst-dm` to `lsst` via the `github transfer repository`_ instructions. Once you've done the transfer, update `repos.yaml` again, removing the ``meas_worst`` entry and changing the ``pipe_best`` entry to refer to the `lsst` organization. This final rename step should not disrupt anything, since github creates a redirect when you use its repository transfer mechanism.
 
 Summary of these steps:
 
