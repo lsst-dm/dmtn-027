@@ -37,7 +37,7 @@ authors:
 copyright: '2016, AURA/LSST'
 
 # Description. A short, 1-2 sentence statemement used by document indices.
-description: 'Some steps to help you rename an LSST git repository with minimal disruption to other's builds.'
+description: "Some steps to help you rename an LSST git repository with minimal disruption to other's builds."
 
 # Abstract, if available
 # abstract: >
