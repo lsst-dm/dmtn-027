@@ -145,16 +145,25 @@ To ensure that other developers are aware of the pending change, post to the app
 Merging in work that had started on the old package
 ===================================================
 
-Once your rename has been merged to master, other developers may have open branches on ``meas_worst`` that they will want to move to ``pipe_best``. Because you did the various steps above as individual commits, they should be able to rebase cleanly. Those developers can follow the following steps:
+Once your rename has been merged to master, other developers may have open branches on ``meas_worst`` that they will want to move to ``pipe_best``. Because you did the various steps above as individual commits, they should be able to rebase cleanly. The first step the other developer should do is to clone ``pipe_best`` and check that it has all the changes in their branch:
 
-1. Push your ``meas_worst`` changes to github on your branch.
-2. Clone pipe_best: ``git clone https://github.com/lsst-dm/pipe_best``
-3. Checkout your branch; it should exist in ``pipe_best``. If it does not, or if it is not up-to-date with your latest changes in ``meas_worst``, you may have to follow the `syncing a fork`_ instructions, but **do not sync master**, only your branch.
-4. Rebase to ``pipe_best`` master: ``git rebase master``
-5. Fix any conflicts. There may be a few, if you modified lines around statements that were changed during the rename.
-6. Commit and push your branch to ``pipe_best``, and continue your work.
+1. Clone pipe_best: :command:`git clone https://github.com/lsst-dm/pipe_best.git`
+2. Checkout the branch: :command:`git checkout tickets/DM-MMMM` and compare it with your work-in-progress branch of ``meas_worst``.
 
-.. _syncing a fork: https://help.github.com/articles/syncing-a-fork/
+If the branches do not match, (i.e. if the other developer had not pushed all changes to ``meas_worst`` before the fork was created), they will have to follow this procedure to get their latest changes and commits into ``pipe_best``:
+
+1. Commit any changes and push the branch on ``meas_worst`` to github to preserve them.
+2. Change the ``meas_worst`` clone's remote: :command:`git remote set-url origin https://github.com/lsst-dm/pipe_best.git`
+3. Push the branch to the new remote :command:`git push --set-upstream origin tickets/DM-MMMM`. **Do not pull or push master!** The goal is to update ``pipe_best`` with your branch's changes, but to not change anything else.
+4. Update the checked-out branch on the ``pipe_best`` clone created above: :command:`git pull`
+5. Check that the branch in the new clone matches your branch in ``meas_worst``, and if so, continue with the steps below. If the branches still don't match, please ask for help from another developer.
+
+If the branch in ``meas_worst`` and the branch in the new clone of ``pipe_best`` contain the same set of changes (this will be the case if the other developer had pushed all of their changes to their branch of ``meas_worst`` before you created the fork, or they had followed the above steps if not), the rest of the merging process is simple:
+
+1. Rebase the new ``pipe_best`` clone to master: :command:`git rebase master`
+2. Fix any conflicts. There may be a few, if the branch has modified lines near lines that were changed during the rename.
+3. Commit and push the branch to ``pipe_best``, and continue working on your new ``pipe_best`` clone. You can delete your local ``meas_worst`` clone.
+
 
 Post-move cleanup
 =================
