@@ -155,7 +155,7 @@ Merge to master and move packages on github
 
 Once your review is complete and you've announced the move as described above, you can merge your branches to master. But merging to master isn't the final step.
 
-All LSST dependencies need to live in the `lsst` github organization. In order to keep our build system happy, you will also need to move ``meas_worst`` and ``pipe_best`` between organizations via the `github transfer repository`_ instructions. Because github puts in an automatic redirect as part of those instructions, people with clones pointing to the pre-move repositories will not have to change their clone `remote` links. You may need the help of a senior developer/manager in order to complete this move step, as the person doing each move needs to be an administrator of both the source and destination organziation.
+All LSST dependencies need to live in the `lsst` github organization. In order to keep our release system happy, you will also need to move ``meas_worst`` and ``pipe_best`` between organizations via the `github transfer repository`_ instructions. Because github puts in an automatic redirect as part of those instructions, people with clones pointing to the pre-move repositories will not have to change their clone `remote` links. You may need the help of a senior developer/manager in order to complete this move step, as the person doing each move needs to be an administrator of both the source and destination organziation.
 
 .. _github transfer repository: https://help.github.com/articles/transferring-a-repository-owned-by-your-organization/
 
@@ -164,7 +164,7 @@ All LSST dependencies need to live in the `lsst` github organization. In order t
 3. Move ``meas_worst`` from `lsst-sqre` to `lsst-dm`.
 4. Update :file:`lsstsw/etc/repos.yaml` to point both ``meas_worst`` and ``pipe_best`` to ``https://github.com/lsst/pipe_best.git``.
 
-The latter step is safe for our build system because our build system uses the name in :file:`repos.yaml` as the clone directory and eups product. Thus, old tags of ``pipe_best`` will work as ``meas_worst`` (the internal names/references will still exist as ``meas_worst``), and so old tags will still build.
+The latter step is safe for our release and build systems because our they uses the name in :file:`repos.yaml` as the clone directory and eups product. Thus, old tags of ``pipe_best`` will work as ``meas_worst`` (the internal names/references will still exist as ``meas_worst``), and so old tags will still build.
 
 .. _Merging-old-work:
 
