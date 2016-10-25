@@ -162,7 +162,7 @@ All LSST dependencies need to live in the `lsst` github organization. In order t
 1. Move ``meas_worst`` from `lsst` to `lsst-sqre`.
 2. Move ``pipe_best`` from `lsst-dm` to `lsst`.
 3. Move ``meas_worst`` from `lsst-sqre` to `lsst-dm`.
-4. Update :file:`lsstsw/etc/repos.yaml` to point both ``meas_worst`` and ``pipe_best`` to ``https://github.com/lsst-dm/pipe_best.git``.
+4. Update :file:`lsstsw/etc/repos.yaml` to point both ``meas_worst`` and ``pipe_best`` to ``https://github.com/lsst/pipe_best.git``.
 
 The latter step is safe for our build system because our build system uses the name in :file:`repos.yaml` as the clone directory and eups product. Thus, old tags of ``pipe_best`` will work as ``meas_worst`` (the internal names/references will still exist as ``meas_worst``), and so old tags will still build.
 
@@ -194,4 +194,4 @@ If the branch in ``meas_worst`` and the branch in the new clone of ``pipe_best``
 Post-move cleanup
 =================
 
-Once you are reasonably confident that there is nobody working on ``meas_worst`` and that all relevant work has been moved to ``pipe_best``, you can delete ``meas_worst`` from `lsst`, and change your ``pipe_best`` remote to point to its final resting place at ``https://github.com/lsst-dm/pipe_best.git``.
+Once you are reasonably confident that there is nobody working on ``meas_worst`` and that all relevant work has been moved to ``pipe_best``, you can delete ``meas_worst`` from `lsst-dm`, and change your ``pipe_best`` remote to point to its final resting place at ``https://github.com/lsst/pipe_best.git``.
