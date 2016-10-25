@@ -37,6 +37,7 @@ Here are the basic steps:
 12. Update `confluence package history`_ page
 13. Get reviewed
 14. Post on Community and Slack
+15. Merge to master and move packages on github
 
 We will go through them one at a time in detail below.
 
@@ -149,6 +150,22 @@ To ensure that other developers are aware of the pending change, post to the app
 
 .. _Community: https://community.lsst.org
 
+Merge to master and move packages on github
+-------------------------------------------
+
+Once your review is complete and you've announced the move as described above, you can merge your branches to master. But merging to master isn't the final step.
+
+All LSST dependencies need to live in the `lsst` github organization. In order to keep our build system happy, you will also need to move ``meas_worst`` and ``pipe_best`` between organizations via the `github transfer repository`_ instructions. Because github puts in an automatic redirect as part of those instructions, people with clones pointing to the pre-move repositories will not have to change their clone `remote` links. You may need the help of a senior developer/manager in order to complete this move step, as the person doing each move needs to be an administrator of both the source and destination organziation.
+
+.. _github transfer repository: https://help.github.com/articles/transferring-a-repository-owned-by-your-organization/
+
+1. Move ``meas_worst`` from `lsst` to `lsst-sqre`.
+2. Move ``pipe_best`` from `lsst-dm` to `lsst`.
+3. Move ``meas_worst`` from `lsst-sqre` to `lsst-dm`.
+4. Update :file:`lsstsw/etc/repos.yaml` to point both ``meas_worst`` and ``pipe_best`` to ``https://github.com/lsst-dm/pipe_best.git``.
+
+The latter step is safe for our build system because our build system uses the name in :file:`repos.yaml` as the clone directory and eups product. Thus, old tags of ``pipe_best`` will work as ``meas_worst`` (the internal names/references will still exist as ``meas_worst``), and so old tags will still build.
+
 .. _Merging-old-work:
 
 Merging in work that had started on the old package
@@ -157,33 +174,24 @@ Merging in work that had started on the old package
 Once your rename has been merged to master, other developers may still have open branches on ``meas_worst`` that they will want to move to ``pipe_best``. Because you did the various steps above as individual commits, they should be able to rebase cleanly. The first step the other developer should do is to clone ``pipe_best`` and check that it has all the changes in their branch:
 
 1. Clone pipe_best: :command:`git clone https://github.com/lsst-dm/pipe_best.git`
-2. Checkout the branch: :command:`git checkout tickets/DM-MMMM` and compare it with your work-in-progress branch of ``meas_worst``.
+2. Checkout the branch: :command:`git checkout tickets/DM-MMMM` and compare it with the work-in-progress branch of ``meas_worst``.
 
 If the branches do not match, (i.e. if the other developer had not pushed all changes to ``meas_worst`` before the fork was created), they will have to follow this procedure to get their latest changes and commits into ``pipe_best``:
 
 1. Commit any changes and push the branch on ``meas_worst`` to github to preserve them.
 2. Change the ``meas_worst`` clone's remote: :command:`git remote set-url origin https://github.com/lsst-dm/pipe_best.git`
-3. Push the branch to the new remote :command:`git push --set-upstream origin tickets/DM-MMMM`. **Do not pull or push master!** The goal is to update ``pipe_best`` with your branch's changes, but to not change anything else.
+3. Push the branch to the new remote :command:`git push --set-upstream origin tickets/DM-MMMM`. **Do not pull or push master!** The goal is to update ``pipe_best`` with the branch's changes, but to not change anything else.
 4. Update the checked-out branch on the ``pipe_best`` clone created above: :command:`git pull`
-5. Check that the branch in the new clone matches your branch in ``meas_worst``, and if so, continue with the steps below. If the branches still don't match, please ask for help from another developer.
+5. Check that the branch in the new clone matches the branch in ``meas_worst``, and if so, continue with the steps below. If the branches still don't match, please ask for help from another developer.
 
-If the branch in ``meas_worst`` and the branch in the new clone of ``pipe_best`` contain the same set of changes (this will be the case if the other developer had pushed all of their changes to their branch of ``meas_worst`` before you created the fork, or they had followed the above steps if not), the rest of the merging process is simple:
+If the branch in ``meas_worst`` and the branch in the new clone of ``pipe_best`` contain the same set of changes (this will be the case if the other developer had pushed all of their changes to their branch of ``meas_worst`` before you created the fork, or they had followed the above steps if not), the rest of the merging process is straight forward:
 
 1. Rebase the new ``pipe_best`` clone to master: :command:`git rebase master`
 2. Fix any conflicts. There may be a few, if the branch has modified lines near lines that were changed during the rename.
-3. Commit and push the branch to ``pipe_best``, and continue working on your new ``pipe_best`` clone. You can delete your local ``meas_worst`` clone.
+3. Commit and push the branch to ``pipe_best``, and continue working on the new ``pipe_best`` clone. The other developer can delete their local ``meas_worst`` clone.
 
 
 Post-move cleanup
 =================
 
-Because github keeps track of forks, we could not move our renamed package back from `lsst-dm` into `lsst`. Once you are reasonably confident that there is nobody working on ``meas_worst`` and that all relevant work has been moved to ``pipe_best``, you can delete ``meas_worst`` from `lsst` and transfer ``pipe_best`` from `lsst-dm` to `lsst` via the `github transfer repository`_ instructions. Once you've done the transfer, update `repos.yaml` again, removing the ``meas_worst`` entry and changing the ``pipe_best`` entry to refer to the `lsst` organization. This final rename step should not disrupt anything, since github creates a redirect when you use its repository transfer mechanism.
-
-Summary of these steps:
-
-1. Ensure all work has moved to new fork
-2. Delete old package
-3. Move new package to `lsst` organization
-4. Update `lsstsw/etc/repos.yaml`
-
-.. _github transfer repository: https://help.github.com/articles/transferring-a-repository-owned-by-your-organization/
+Once you are reasonably confident that there is nobody working on ``meas_worst`` and that all relevant work has been moved to ``pipe_best``, you can delete ``meas_worst`` from `lsst`, and change your ``pipe_best`` remote to point to its final resting place at ``https://github.com/lsst-dm/pipe_best.git``.
