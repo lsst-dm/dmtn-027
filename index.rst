@@ -29,7 +29,7 @@ Here are the basic steps:
 4. Rename code directories and files (**commit**)
 5. Rename ups files (**commit**)
 6. Search and replace in source code and docs (**commit**)
-7. Update :file:`lsstsw/etc/repos.yaml`
+7. Update :file:`repos/etc/repos.yaml`
 8. Deprecate old package
 9. Branch dependent packages
 10. Update dependent packages
@@ -94,14 +94,14 @@ This step is helped immensely by using an editor that can do search-and-replace 
 
 Commit these changes, and push your branch.
 
-Update ``lsstsw/etc/repos.yaml``
+Update ``repos/etc/repos.yaml``
 --------------------------------
 
-On your local lsstsw clone, create a branch for this ticket, and add a new ``pipe_best`` entry to lsstsw's :file:`repos.yaml` that points to `http://github.com/lsst-dm/pipe_best`. Create a Pull Request for your branch on github, and if it passes Travis you are free to merge it to master (further details on the `Adding New Package`_ page).
+On your local repos clone, create a branch for this ticket, and add a new ``pipe_best`` entry to repos's :file:`repos.yaml` that points to `http://github.com/lsst-dm/pipe_best`. Create a Pull Request for your branch on github, and if it passes Travis you are free to merge it to master (further details on the `Adding New Package`_ page).
 
 Do not delete the ``meas_worst`` entry yet.
 
-.. _Adding New Package: https://developer.lsst.io/build-ci/new_package.html#adding-a-new-package-to-the-build
+.. _Adding New Package: https://developer.lsst.io/stack/adding-a-new-package.html
 
 Deprecate old package
 ---------------------
@@ -162,7 +162,7 @@ All LSST dependencies need to live in the `lsst` github organization. In order t
 1. Move ``meas_worst`` from `lsst` to `lsst-sqre`.
 2. Move ``pipe_best`` from `lsst-dm` to `lsst`.
 3. Move ``meas_worst`` from `lsst-sqre` to `lsst-dm`.
-4. Update :file:`lsstsw/etc/repos.yaml` to point both ``meas_worst`` and ``pipe_best`` to ``https://github.com/lsst/pipe_best.git``.
+4. Update :file:`repos/etc/repos.yaml` to point both ``meas_worst`` and ``pipe_best`` to ``https://github.com/lsst/pipe_best.git``.
 
 The latter step is safe for our release and build systems because our they uses the name in :file:`repos.yaml` as the clone directory and eups product. Thus, old tags of ``pipe_best`` will work as ``meas_worst`` (the internal names/references will still exist as ``meas_worst``), and so old tags will still build.
 
