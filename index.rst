@@ -194,4 +194,5 @@ If the branch in ``meas_worst`` and the branch in the new clone of ``pipe_best``
 Post-move cleanup
 =================
 
-Once you are reasonably confident that there is nobody working on ``meas_worst`` and that all relevant work has been moved to ``pipe_best``, you can delete ``meas_worst`` from `lsst-dm`, and change your ``pipe_best`` remote to point to its final resting place at ``https://github.com/lsst/pipe_best.git``.
+Once you are reasonably confident that there is nobody working on ``meas_worst``, double-check that there have been no commits (even on branches) or tags pushed to its repo that are not also in ``pipe_best``.
+When that is the case, you can delete ``meas_worst`` from `lsst-dm`, and change your ``pipe_best`` remote to point to its final resting place at ``https://github.com/lsst/pipe_best.git``.
